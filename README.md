@@ -1,68 +1,71 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Before cloning the repo
+```sh
+git config --global core.autocrlf input
+```
+(just re-clone if already cloned).
 
-## Available Scripts
+# Setup
 
-In the project directory, you can run:
+Install dependencies and the migration tool :
+```sh
+npm i
+npm i -g db-migrate db-migrate-mysql
+```
+Copy the environnement variables : 
+```
+cp .env.sample .env
+```
+This `.env` file allows to change the way the Node server connects to the database, but you probably won't have to change any of those variables unless you want to deploy the app yourself and connect it to a specific DB.
 
-### `npm start`
+## With Docker (recommanded)
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Install Docker on your OS.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+### I just want to run the existing app without making changes to the code
+```sh
+docker-compose up --build
+```
+That will install and run the app with all its dependencies (including the DB) in isolated containers. With this single command, you will have a fully functionnal API listening by default on `localhost:3000`. 
 
-### `npm test`
+You will also have two running DB servers (one for developpement and one for running automated tests), accessible respectively on `localhost:3307` and `localhost:3308` with the user `root` and the password `root`.
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### I want to develop the app
 
-### `npm run build`
+Alternatively, you can just bring up the db and run the app outside a container :
+```sh
+docker-compose up db #(wait until the console stop outputing stuff)
+npm run migrate
+npm run start-watch
+```
+That may be useful when developpping since you won't have to rebuild and re-run the NodeJS container every time when a change is made in the code.
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### I want to run the automated tests
+```sh
+npm run tests:setup-db #(wait until the test DB is accessible at localhost:3308)
+npm run tests:migrate-db
+npm run test
+```
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+## Without Docker
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Install MySQL (5.7) on your OS. 
+Then, create two MySQL server instances, both accessible with the user `root` and the password `root` : 
+- One listening on port 3307 with an empty database called `customer_api_database`. 
+- One listening on port 3308 with an empty database called `customer_api_database_test`.
 
-### `npm run eject`
+### Run the app
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```sh
+npm run migrate
+npm run start:watch
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Run the automated tests
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```sh
+npm run tests:migrate-db
+npm run test
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+# Docs
+You can access the docs at [localhost:3000/api-docs](http://localhost:3000/api-docs)
